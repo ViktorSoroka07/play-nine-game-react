@@ -1,0 +1,7 @@
+.picture {
+    visibility: hidden;
+}
+
+.picture.show {
+    visibility: visible;
+}

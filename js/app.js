@@ -1,39 +1,75 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
+var jQuery = require('jquery');
 
-var Button = React.createClass({
-    handleClick: function () {
-        this.props.localHandleClick(this.props.increment);
+var Card = React.createClass({
+    getInitialState: function () {
+        return {};
+    },
+    componentDidMount: function () {
+        var component = this;
+        jQuery.get("https://api.github.com/users/" + this.props.login, function (data) {
+            component.setState(data);
+        });
     },
     render: function () {
+        var cls = 'picture ' + (this.state.name ? 'show' : '');
         return (
-            <button onClick={this.handleClick}>+{this.props.increment}</button>
+            <div>
+                <div className={cls}>
+                    <img src={this.state.avatar_url} alt="developer" width="80" height="80"/>
+                </div>
+                <p>{this.state.name}</p>
+                <hr/>
+            </div>
         );
     }
 });
 
-var Result = React.createClass({
+var FormAddCard = React.createClass({
+    getInitialState: function () {
+        return {};
+    },
+    /**
+     * this bound to the component
+     * @param e
+     */
+    addCard: function (e) {
+        e.preventDefault();
+        var login = ReactDOM.findDOMNode(this.refs.login); // or just =this.refs.login
+        this.props.addCard(login.value);
+        login.value = '';
+
+    },
     render: function () {
         return (
-            <div>{this.props.localCounter}</div>
+            <form onSubmit={this.addCard}>
+                <input type="text" ref="login"/>
+                <button type="submit">Add</button>
+            </form>
         );
     }
 });
 
 var Main = React.createClass({
     getInitialState: function () {
-        return {counter: 0};
+        return {
+            cards: []
+        };
     },
-    handleClick: function (increment) {
-        this.setState({counter: this.state.counter + increment});
+    addCard: function (card) {
+        this.setState({cards: this.state.cards.concat(card)});
     },
     render: function () {
+        var cards = this.state.cards.map(function (login, index) {
+            return (
+                <Card key={index} login={login}/>
+            );
+        });
         return (
             <div>
-                <Button localHandleClick={this.handleClick} increment={1}/>
-                <Button localHandleClick={this.handleClick} increment={5}/>
-                <Button localHandleClick={this.handleClick} increment={10}/>
-                <Result localCounter={this.state.counter}/>
+                <FormAddCard addCard={this.addCard}/>
+                {cards}
             </div>
         );
     }
