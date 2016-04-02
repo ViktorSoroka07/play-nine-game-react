@@ -9,6 +9,7 @@
   "author": "Viktor Soroka",
   "license": "ISC",
   "dependencies": {
+    "jquery": "^1.12.2",
     "react": "^0.14.8",
     "react-dom": "^0.14.8"
   },
