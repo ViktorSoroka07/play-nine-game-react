@@ -2,77 +2,115 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var jQuery = require('jquery');
 
-var Card = React.createClass({
-    getInitialState: function () {
-        return {};
-    },
-    componentDidMount: function () {
-        var component = this;
-        jQuery.get("https://api.github.com/users/" + this.props.login, function (data) {
-            component.setState(data);
-        });
-    },
+var StarsFrame = React.createClass({
     render: function () {
-        var cls = 'picture ' + (this.state.name ? 'show' : '');
+        var stars = [];
+
+        for (let number = 0; number < this.props.numberOfStars; number++) {
+            stars.push(
+                <span key={number} className="glyphicon glyphicon-star"></span>
+            );
+        }
+
         return (
-            <div>
-                <div className={cls}>
-                    <img src={this.state.avatar_url} alt="developer" width="80" height="80"/>
+            <div id="stars-frame">
+                <div className="well">
+                    {stars}
                 </div>
-                <p>{this.state.name}</p>
-                <hr/>
             </div>
         );
     }
 });
 
-var FormAddCard = React.createClass({
-    getInitialState: function () {
-        return {};
-    },
-    /**
-     * this bound to the component
-     * @param e
-     */
-    addCard: function (e) {
-        e.preventDefault();
-        var login = ReactDOM.findDOMNode(this.refs.login); // or just =this.refs.login
-        this.props.addCard(login.value);
-        login.value = '';
-
-    },
+var ButtonFrame = React.createClass({
     render: function () {
+        var disabled = !this.props.selectedNumbers.length;
         return (
-            <form onSubmit={this.addCard}>
-                <input type="text" ref="login"/>
-                <button type="submit">Add</button>
-            </form>
+            <div id="button-frame">
+                <button className="btn btn-primary btn-lg" disabled={disabled}>=</button>
+            </div>
         );
     }
 });
 
-var Main = React.createClass({
+var AnswerFrame = React.createClass({
+    render: function () {
+        var component = this;
+
+        return (
+            <div id="answer-frame">
+                <div className="well">
+                    {this.props.selectedNumbers.map(function (number, index) {
+                        return (
+                            <span key={index} className="number" onClick={component.props.unselectNumber.bind(null, number)}>{number}</span>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    }
+});
+
+var NumbersFrame = React.createClass({
+    render: function () {
+        var numbers = [],
+            selectedNumbers = this.props.selectedNumbers,
+            className = '';
+
+        for (let index = 1; index <= 9; index++) {
+            className = "number selected-" + (selectedNumbers.indexOf(index) >= 0);
+
+            numbers.push(
+                <div key={index} className={className} onClick={this.props.selectNumber.bind(null, index)}>{index}</div>
+            )
+        }
+
+        return (
+            <div id="numbers-frame">
+                <div className="well">
+                    {numbers}
+                </div>
+            </div>
+        );
+    }
+});
+
+var Game = React.createClass({
     getInitialState: function () {
         return {
-            cards: []
+            selectedNumbers: [],
+            numberOfStars: Math.floor(Math.random() * 9) + 1
         };
     },
-    addCard: function (card) {
-        this.setState({cards: this.state.cards.concat(card)});
+    selectNumber: function (clickedNumber) {
+        if (this.state.selectedNumbers.indexOf(clickedNumber) < 0) {
+            this.setState({selectedNumbers: this.state.selectedNumbers.concat(clickedNumber)});
+        }
+    },
+    unselectNumber: function (clickedNumber) {
+        var updatedNumbers = this.state.selectedNumbers;
+
+        updatedNumbers.splice(updatedNumbers.indexOf(clickedNumber), 1);
+
+        this.setState({selectedNumbers: updatedNumbers});
     },
     render: function () {
-        var cards = this.state.cards.map(function (login, index) {
-            return (
-                <Card key={index} login={login}/>
-            );
-        });
+        var selectedNumbers = this.state.selectedNumbers,
+            numberOfStars = this.state.numberOfStars;
+
         return (
-            <div>
-                <FormAddCard addCard={this.addCard}/>
-                {cards}
+            <div id="game">
+                <h2>Play Nine</h2>
+                <hr/>
+                <div className="clearfix">
+                    <StarsFrame numberOfStars={numberOfStars}/>
+                    <ButtonFrame selectedNumbers={selectedNumbers}/>
+                    <AnswerFrame selectedNumbers={selectedNumbers} unselectNumber={this.unselectNumber}/>
+                </div>
+                <NumbersFrame selectedNumbers={selectedNumbers} selectNumber={this.selectNumber}/>
             </div>
-        );
+        )
     }
 });
 
-ReactDOM.render(<Main />, document.getElementById('root'));
+ReactDOM.render(<Game />, document.getElementById('container'));
