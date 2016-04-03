@@ -14,7 +14,7 @@ indent_style = space
 indent_size = 2
 
 # Indentation override for all JS under lib directory
-[css/**.css]
+[*.css]
 indent_style = space
 indent_size = 2
 

@@ -24,10 +24,30 @@ var StarsFrame = React.createClass({
 
 var ButtonFrame = React.createClass({
     render: function () {
-        var disabled = !this.props.selectedNumbers.length;
+        var correct = this.props.correct;
+        var disabled, button;
+
+        if (correct) {
+            button = (
+                <button className="btn btn-success btn-lg">
+                    <span className="glyphicon glyphicon-ok"></span>
+                </button>
+            );
+        } else if (correct !== null) {
+            button = (
+                <button className="btn btn-danger btn-lg">
+                    <span className="glyphicon glyphicon-remove"></span>
+                </button>
+            );
+        } else {
+            disabled = !this.props.selectedNumbers.length;
+            button = (
+                <button className="btn btn-primary btn-lg" disabled={disabled} onClick={this.props.checkAnswer}>=</button>
+            );
+        }
         return (
             <div id="button-frame">
-                <button className="btn btn-primary btn-lg" disabled={disabled}>=</button>
+                {button}
             </div>
         );
     }
@@ -79,7 +99,8 @@ var Game = React.createClass({
     getInitialState: function () {
         return {
             selectedNumbers: [],
-            numberOfStars: Math.floor(Math.random() * 9) + 1
+            numberOfStars: Math.floor(Math.random() * 9) + 1,
+            correct: null
         };
     },
     selectNumber: function (clickedNumber) {
@@ -94,9 +115,18 @@ var Game = React.createClass({
 
         this.setState({selectedNumbers: updatedNumbers});
     },
+    sumOfSelectedNumbers: function () {
+        return this.state.selectedNumbers.reduce(function (sum, currentNumber) {
+            return sum + currentNumber;
+        }, 0);
+    },
+    checkAnswer: function () {
+        this.setState({correct: this.state.numberOfStars === this.sumOfSelectedNumbers()});
+    },
     render: function () {
         var selectedNumbers = this.state.selectedNumbers,
-            numberOfStars = this.state.numberOfStars;
+            numberOfStars = this.state.numberOfStars,
+            correct = this.state.correct;
 
         return (
             <div id="game">
@@ -104,7 +134,7 @@ var Game = React.createClass({
                 <hr/>
                 <div className="clearfix">
                     <StarsFrame numberOfStars={numberOfStars}/>
-                    <ButtonFrame selectedNumbers={selectedNumbers}/>
+                    <ButtonFrame selectedNumbers={selectedNumbers} correct={correct} checkAnswer={this.checkAnswer}/>
                     <AnswerFrame selectedNumbers={selectedNumbers} unselectNumber={this.unselectNumber}/>
                 </div>
                 <NumbersFrame selectedNumbers={selectedNumbers} selectNumber={this.selectNumber}/>
