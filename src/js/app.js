@@ -1,5 +1,5 @@
-var React = require('react');
-var ReactDOM = require('react-dom');
+import React from 'react';
+import ReactDOM from 'react-dom';
 
 var possibleCombinationSum = function (arr, n) {
     if (arr.indexOf(n) >= 0) {
@@ -121,7 +121,7 @@ var NumbersFrame = React.createClass({
             className += " used-" + (usedNumbers.indexOf(index) >= 0);
 
             numbers.push(
-                <div key={index} className={className} onClick={this.props.selectNumber.bind(null, index)}>{index}</div>
+                <div key={index} className={className} onClick={usedNumbers.indexOf(index) === -1 && this.props.selectNumber.bind(null, index)}>{index}</div>
             )
         }
 
