@@ -24,9 +24,9 @@
 #numbers-frame .number,
 #answer-frame .number {
   display: inline-block;
+  width: 30px;
   margin: 0.5em;
   background-color: #bbb;
-  width: 30px;
   text-align: center;
   font-size: 22px;
   border-radius: 50%;
