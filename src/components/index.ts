@@ -1,2 +1,2 @@
 export * from './Game';
-export * from './ErrorBoundary';
+export * from './ErrorFallback';
