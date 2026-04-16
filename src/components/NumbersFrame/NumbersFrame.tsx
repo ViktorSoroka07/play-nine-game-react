@@ -1,3 +1,5 @@
+import './NumbersFrame.css';
+
 interface NumbersFrameProps {
   usedNumbers: number[];
   selectedNumbers: number[];
@@ -6,7 +8,7 @@ interface NumbersFrameProps {
 
 export function NumbersFrame({ usedNumbers, selectedNumbers, selectNumber }: NumbersFrameProps) {
   return (
-    <div id="numbers-frame">
+    <div className="numbers-frame">
       <div className="well">
         {Array.from({ length: 9 })
           .map((_, i) => i + 1)

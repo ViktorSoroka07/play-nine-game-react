@@ -1,3 +1,5 @@
+import './ButtonFrame.css';
+
 interface ButtonFrameProps {
   correct: boolean | null;
   acceptAnswer: () => void;
@@ -16,7 +18,7 @@ export function ButtonFrame({
   checkAnswer,
 }: ButtonFrameProps) {
   return (
-    <div id="button-frame">
+    <div className="button-frame">
       {correct ? (
         <button className="btn btn-success btn-lg" onClick={acceptAnswer} aria-label="Accept answer">
           <span className="glyphicon glyphicon-ok" aria-hidden="true" />

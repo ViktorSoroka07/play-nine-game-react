@@ -1,3 +1,5 @@
+import './AnswerFrame.css';
+
 interface AnswerFrameProps {
   selectedNumbers: number[];
   unselectNumber: (number: number) => void;
@@ -5,7 +7,7 @@ interface AnswerFrameProps {
 
 export function AnswerFrame({ selectedNumbers, unselectNumber }: AnswerFrameProps) {
   return (
-    <div id="answer-frame">
+    <div className="answer-frame">
       <div className="well">
         {selectedNumbers.map((number) => (
           <button

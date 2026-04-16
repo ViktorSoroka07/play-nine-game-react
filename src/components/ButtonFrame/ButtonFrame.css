@@ -1,0 +1,19 @@
+.button-frame {
+  width: 20%;
+  float: left;
+  text-align: center;
+  margin-top: 70px;
+
+  & .btn {
+    border-radius: 10px;
+    box-shadow: 0 4px 12px #0f3b6a1f;
+  }
+}
+
+@media (max-width: 768px) {
+  .button-frame {
+    width: 100%;
+    float: none;
+    margin: 14px 0;
+  }
+}
