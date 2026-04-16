@@ -49,11 +49,11 @@ eslint.config.js         # React Hooks rules enforced
 
 - Functional only (except ErrorBoundary class component)
 - Named exports, no defaults
-- All handlers use `useCallback` before passing to children
+- With React Compiler enabled, prefer plain handlers first; add `useCallback` only for semantic needs or measured regressions
 
 **Computed Values**
 
-- Use `useMemo` with correct dependencies, never useEffect
+- Never derive state via `useEffect`; prefer inline computation, and use `useMemo` only when there is a real need
 
 **Tests**
 
