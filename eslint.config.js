@@ -31,10 +31,24 @@ export default [
       '@typescript-eslint': tseslint.plugin,
     },
     rules: {
+      'padding-line-between-statements': [
+        'error',
+        { blankLine: 'always', prev: '*', next: ['return', 'if', 'for', 'while', 'switch', 'throw', 'try'] },
+        { blankLine: 'always', prev: ['if', 'for', 'while', 'switch', 'throw', 'try'], next: '*' },
+        { blankLine: 'always', prev: ['const', 'let', 'var'], next: '*' },
+        { blankLine: 'any', prev: ['const', 'let', 'var'], next: ['const', 'let', 'var'] },
+      ],
+      eqeqeq: ['error', 'always'],
+      'no-console': 'warn',
+      'prefer-const': 'error',
       'react/jsx-uses-react': 'error',
       'react/jsx-uses-vars': 'error',
+      'react/self-closing-comp': 'error',
+      'react/jsx-curly-brace-presence': ['error', { props: 'never', children: 'never' }],
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
+      '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',
         {

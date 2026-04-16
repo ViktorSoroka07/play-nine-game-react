@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { ButtonFrame } from './ButtonFrame';
+import { getCheckAnswerButton } from '../../test/selectors';
 
 describe('ButtonFrame', () => {
   it('renders check button and triggers checkAnswer', async () => {
@@ -19,14 +20,15 @@ describe('ButtonFrame', () => {
       />
     );
 
-    await user.click(screen.getByRole('button', { name: 'Check answer' }));
+    await user.click(getCheckAnswerButton());
     expect(checkAnswer).toHaveBeenCalledTimes(1);
   });
 
   it('renders success button when answer is correct', async () => {
     const user = userEvent.setup();
     const acceptAnswer = vi.fn();
-    const { container } = render(
+
+    render(
       <ButtonFrame
         correct={true}
         acceptAnswer={acceptAnswer}
@@ -37,12 +39,12 @@ describe('ButtonFrame', () => {
       />
     );
 
-    await user.click(container.querySelector('.btn-success')!);
+    await user.click(screen.getByRole('button', { name: 'Accept answer' }));
     expect(acceptAnswer).toHaveBeenCalledTimes(1);
   });
 
   it('renders wrong-answer state and redraw disabled when no redraws left', () => {
-    const { container } = render(
+    render(
       <ButtonFrame
         correct={false}
         acceptAnswer={vi.fn()}
@@ -53,7 +55,7 @@ describe('ButtonFrame', () => {
       />
     );
 
-    expect(container.querySelector('.btn-danger')).toBeInTheDocument();
-    expect(container.querySelector('.btn-warning')).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Wrong answer' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Redraw' })).toBeDisabled();
   });
 });

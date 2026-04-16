@@ -1,4 +1,5 @@
 import { useReducer } from 'react';
+import './Game.css';
 
 import { getRandom, possibleCombinationSum } from '../../utils';
 import { StarsFrame } from '../StarsFrame';
@@ -44,6 +45,7 @@ export function Game() {
   };
 
   let doneStatus: string | null = null;
+
   if (state.usedNumbers.length === 9) {
     doneStatus = 'Done. Nice!';
   } else if (state.redraws === 0 && !possibleSolutions(state.usedNumbers, state.numberOfStars)) {
@@ -99,7 +101,7 @@ export function Game() {
   };
 
   return (
-    <div id="game">
+    <div className="game">
       <h2>Play Nine</h2>
       <hr />
       <div className="clearfix">

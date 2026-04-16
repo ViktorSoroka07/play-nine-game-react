@@ -1,0 +1,13 @@
+.game {
+  background: #fff;
+  border: 1px solid #e5edf8;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px #0f3b6a14;
+  padding: 18px;
+
+  & h2 {
+    margin-top: 0;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+}

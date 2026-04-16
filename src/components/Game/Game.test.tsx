@@ -1,94 +1,102 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { Game } from './Game';
+import {
+  getNumberButton,
+  getAllNumberButtons,
+  getUnselectButton,
+  getAllUnselectButtons,
+  getCheckAnswerButton,
+  getAcceptAnswerButton,
+  getRedrawButton,
+  getStarsCount,
+} from '../../test/selectors';
 
 describe('Game', () => {
   it('renders with initial state', () => {
-    const { container } = render(<Game />);
+    render(<Game />);
 
     expect(screen.getByRole('heading', { name: 'Play Nine' })).toBeInTheDocument();
-    expect(container.querySelectorAll('#numbers-frame .well > button')).toHaveLength(9);
-    expect(container.querySelector('#stars-frame')).toBeInTheDocument();
-    expect(container.querySelector('#answer-frame')).toBeInTheDocument();
+    expect(getAllNumberButtons()).toHaveLength(9);
+    expect(screen.getByRole('img', { name: /Stars:/ })).toBeInTheDocument();
+    expect(getAllUnselectButtons()).toHaveLength(0);
   });
 
   it('allows selecting and unselecting numbers', async () => {
     const user = userEvent.setup();
-    const { container } = render(<Game />);
 
-    const numbersFrame = container.querySelector('#numbers-frame')!;
-    const button4 = within(numbersFrame).getByText('4');
-    await user.click(button4);
-    expect(container.querySelector('#answer-frame .number')).toHaveTextContent('4');
+    render(<Game />);
 
-    await user.click(container.querySelector('#answer-frame .number')!);
-    expect(container.querySelector('#answer-frame .number')).toBeNull();
+    await user.click(getNumberButton(4));
+    expect(getUnselectButton(4)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Unselect 4' }));
+    expect(getUnselectButton(4)).not.toBeInTheDocument();
   });
 
   it('prevents selecting the same number twice', async () => {
     const user = userEvent.setup();
-    const { container } = render(<Game />);
 
-    const numbersFrame = container.querySelector('#numbers-frame')!;
-    const button5 = within(numbersFrame).getByText('5');
+    render(<Game />);
 
-    await user.click(button5);
-    const answerFrame = container.querySelector('#answer-frame')!;
-    expect(answerFrame.querySelectorAll('.number')).toHaveLength(1);
+    const button5 = getNumberButton(5);
 
     await user.click(button5);
-    expect(answerFrame.querySelectorAll('.number')).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: 'Unselect 5' })).toHaveLength(1);
+
+    await user.click(button5);
+    expect(screen.getAllByRole('button', { name: 'Unselect 5' })).toHaveLength(1);
   });
 
   it('disables used numbers after acceptance', async () => {
     const user = userEvent.setup();
-    const { container } = render(<Game />);
 
-    const numbersFrame = container.querySelector('#numbers-frame')!;
+    render(<Game />);
+
     // Select 1+2
-    await user.click(within(numbersFrame).getByText('1'));
-    await user.click(within(numbersFrame).getByText('2'));
-    await user.click(screen.getByRole('button', { name: 'Check answer' }));
+    await user.click(getNumberButton(1));
+    await user.click(getNumberButton(2));
+    await user.click(getCheckAnswerButton());
 
     // May be correct or incorrect; if correct, accept it
-    const acceptButton = container.querySelector('.btn-success');
+    const acceptButton = getAcceptAnswerButton();
+
     if (acceptButton) {
       await user.click(acceptButton);
       // 1 and 2 should now be disabled
-      const numberButtons = container.querySelectorAll<HTMLButtonElement>('#numbers-frame button');
-      const button1 = Array.from(numberButtons).find((btn) => btn.textContent === '1');
-      const button2 = Array.from(numberButtons).find((btn) => btn.textContent === '2');
-      expect(button1?.disabled).toBe(true);
-      expect(button2?.disabled).toBe(true);
+      expect(getNumberButton(1)).toBeDisabled();
+      expect(getNumberButton(2)).toBeDisabled();
     }
   });
 
   it('handles correct answers', async () => {
     const user = userEvent.setup();
-    const { container } = render(<Game />);
 
-    const numbersFrame = container.querySelector('#numbers-frame')!;
+    render(<Game />);
 
     // Keep trying different combinations until we get a correct answer
     // Get the target star count
-    const starsElement = container.querySelector('#stars-frame .well')!;
-    const starCount = starsElement.querySelectorAll('.glyphicon-star').length;
+    const starCount = getStarsCount();
 
     // Try to find a combination that sums to the star count
     const maxAttempts = 10;
+
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       // Clear previous selections
-      const selectedButtons = container.querySelectorAll<HTMLButtonElement>('#answer-frame button');
+      const selectedButtons = getAllUnselectButtons();
+
       for (const btn of selectedButtons) {
         await user.click(btn);
       }
 
       // Select numbers that sum to starCount (try 1+2+... pattern)
       let sum = 0;
+
       for (let num = 1; num <= 9 && sum < starCount; num++) {
-        const numberBtn = within(numbersFrame).getByText(num.toString());
+        const numberBtn = getNumberButton(num);
         const isDisabled = (numberBtn as HTMLButtonElement).disabled;
+
         if (!isDisabled && sum + num <= starCount) {
           await user.click(numberBtn);
           sum += num;
@@ -97,16 +105,17 @@ describe('Game', () => {
 
       if (sum === starCount) {
         // Found a correct combination
-        await user.click(screen.getByRole('button', { name: 'Check answer' }));
-        expect(container.querySelector('.btn-success')).toBeInTheDocument();
+        await user.click(getCheckAnswerButton());
+        expect(screen.getByRole('button', { name: 'Accept answer' })).toBeInTheDocument();
         break;
       }
 
       // Try again with different combination
       if (attempt < maxAttempts - 1) {
         // Reset for next attempt
-        const refreshBtn = container.querySelector('.btn-warning');
-        if (refreshBtn && !(refreshBtn as HTMLButtonElement).disabled) {
+        const refreshBtn = getRedrawButton();
+
+        if (!refreshBtn.hasAttribute('disabled')) {
           await user.click(refreshBtn);
         }
       }
@@ -115,37 +124,41 @@ describe('Game', () => {
 
   it('handles wrong answers', async () => {
     const user = userEvent.setup();
-    const { container } = render(<Game />);
 
-    const numbersFrame = container.querySelector('#numbers-frame')!;
+    render(<Game />);
 
     // Select numbers that definitely won't sum to any reasonable star count
-    await user.click(within(numbersFrame).getByText('1'));
-    await user.click(within(numbersFrame).getByText('2'));
-    await user.click(screen.getByRole('button', { name: 'Check answer' }));
+    await user.click(getNumberButton(1));
+    await user.click(getNumberButton(2));
+    await user.click(getCheckAnswerButton());
 
     // Check if it's wrong (may happen randomly)
-    const wrongButton = container.querySelector('.btn-danger');
+    const wrongButton = screen.queryByRole('button', { name: 'Wrong answer' });
+
     if (wrongButton) {
       expect(wrongButton).toBeInTheDocument();
-      expect((wrongButton as HTMLButtonElement).disabled).toBe(true);
+      expect(wrongButton).toBeDisabled();
     }
   });
 
   it('decrements redraws count', async () => {
     const user = userEvent.setup();
-    const { container } = render(<Game />);
+
+    render(<Game />);
 
     const getRedraws = () => {
-      const redrawBtn = container.querySelector<HTMLButtonElement>('.btn-warning')!;
-      const redraws = redrawBtn.querySelector('span:last-child')!.textContent;
-      return parseInt(redraws || '0', 10);
+      const redrawBtn = getRedrawButton();
+      const redraws = redrawBtn.textContent?.match(/\d+/)?.[0] || '0';
+
+      return parseInt(redraws, 10);
     };
 
     const initialRedraws = getRedraws();
+
     expect(initialRedraws).toBe(5);
 
-    const redrawBtn = container.querySelector<HTMLButtonElement>('.btn-warning')!;
+    const redrawBtn = getRedrawButton();
+
     await user.click(redrawBtn);
 
     expect(getRedraws()).toBe(initialRedraws - 1);
@@ -153,33 +166,36 @@ describe('Game', () => {
 
   it('disables redraw button when no redraws left', async () => {
     const user = userEvent.setup();
-    const { container } = render(<Game />);
 
-    const redrawBtn = container.querySelector<HTMLButtonElement>('.btn-warning')!;
+    render(<Game />);
+
+    const redrawBtn = getRedrawButton();
 
     // Use all 5 redraws
     for (let i = 0; i < 5; i++) {
-      expect(redrawBtn.disabled).toBe(false);
+      expect(redrawBtn).toBeEnabled();
       await user.click(redrawBtn);
     }
 
-    expect(redrawBtn.disabled).toBe(true);
+    expect(redrawBtn).toBeDisabled();
   });
 
   it('clears selection when redrawing', async () => {
     const user = userEvent.setup();
-    const { container } = render(<Game />);
+
+    render(<Game />);
 
     // Select a number
-    await user.click(screen.getByText('3'));
-    expect(container.querySelector('#answer-frame .number')).toHaveTextContent('3');
+    await user.click(getNumberButton(3));
+    expect(getUnselectButton(3)).toBeInTheDocument();
 
     // Redraw
-    const redrawBtn = container.querySelector('.btn-warning')!;
+    const redrawBtn = getRedrawButton();
+
     await user.click(redrawBtn);
 
     // Selection should be cleared
-    expect(container.querySelector('#answer-frame .number')).toBeNull();
+    expect(getUnselectButton(3)).not.toBeInTheDocument();
   });
 
   it('shows done frame when all 9 numbers are used', async () => {
@@ -194,41 +210,43 @@ describe('Game', () => {
 
   it('resets game when Play Again is clicked', async () => {
     const user = userEvent.setup();
-    const { container } = render(<Game />);
+
+    render(<Game />);
 
     // Select numbers and check answer
-    await user.click(screen.getByText('1'));
-    await user.click(screen.getByRole('button', { name: 'Check answer' }));
+    await user.click(getNumberButton(1));
+    await user.click(getCheckAnswerButton());
 
     // If correct, accept and continue until we can see the reset button
-    const acceptBtn = container.querySelector('.btn-success');
+    const acceptBtn = getAcceptAnswerButton();
+
     if (acceptBtn) {
       await user.click(acceptBtn);
     }
 
     // Since we can't easily force a win, we verify the structure
     // The game should have numbers buttons available
-    const numberButtons = container.querySelectorAll<HTMLButtonElement>('#numbers-frame button');
-    expect(numberButtons.length).toBe(9);
+    expect(getAllNumberButtons()).toHaveLength(9);
   });
 
   it('check answer button is disabled when no numbers selected', () => {
-    const { container } = render(<Game />);
+    render(<Game />);
 
-    const checkBtn = container.querySelector<HTMLButtonElement>('button[aria-label="Check answer"]')!;
-    expect(checkBtn.disabled).toBe(true);
+    const checkBtn = getCheckAnswerButton();
+
+    expect(checkBtn).toBeDisabled();
   });
 
   it('check answer button is enabled when numbers are selected', async () => {
     const user = userEvent.setup();
-    const { container } = render(<Game />);
 
-    const numbersFrame = container.querySelector('#numbers-frame')!;
+    render(<Game />);
 
-    const checkBtn = container.querySelector<HTMLButtonElement>('button[aria-label="Check answer"]')!;
-    expect(checkBtn.disabled).toBe(true);
+    const checkBtn = getCheckAnswerButton();
 
-    await user.click(within(numbersFrame).getByText('5'));
-    expect(checkBtn.disabled).toBe(false);
+    expect(checkBtn).toBeDisabled();
+
+    await user.click(getNumberButton(5));
+    expect(checkBtn).toBeEnabled();
   });
 });
