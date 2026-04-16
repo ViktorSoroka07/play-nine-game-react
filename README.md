@@ -1,8 +1,22 @@
-# Play nine game
-Created using React, based on a tutorial from Pluralsight by Samer Buna.
+# Play Nine
 
-## Initial setup
-Run `npm install` in order to setup application
+A browser-based number puzzle game built with React and TypeScript.
 
-## Development server
-Run `npm start` for a dev server.
+## Setup
+
+Run `npm install`.
+
+## Commands
+
+- `npm start` - run the development server
+- `npm test` - run tests in watch mode
+- `npm run coverage` - run tests with coverage report
+- `npm run lint` - run ESLint checks
+- `npm run build` - build for production
+
+## Stack
+
+- React 19
+- TypeScript
+- Vite
+- Vitest + Testing Library
