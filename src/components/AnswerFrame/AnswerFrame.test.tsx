@@ -14,6 +14,6 @@ describe('AnswerFrame', () => {
     expect(screen.getByText('5')).toBeInTheDocument();
 
     await user.click(screen.getByText('5'));
-    expect(unselectNumber.mock.calls[0][0]).toBe(5);
+    expect(unselectNumber.mock.calls[0]?.[0]).toBe(5);
   });
 });

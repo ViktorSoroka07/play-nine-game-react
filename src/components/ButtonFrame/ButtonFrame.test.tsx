@@ -16,10 +16,10 @@ describe('ButtonFrame', () => {
         redraws={5}
         selectedNumbers={[1]}
         checkAnswer={checkAnswer}
-      />,
+      />
     );
 
-    await user.click(screen.getByRole('button', { name: '=' }));
+    await user.click(screen.getByRole('button', { name: 'Check answer' }));
     expect(checkAnswer).toHaveBeenCalledTimes(1);
   });
 
@@ -34,10 +34,10 @@ describe('ButtonFrame', () => {
         redraws={5}
         selectedNumbers={[1]}
         checkAnswer={vi.fn()}
-      />,
+      />
     );
 
-    await user.click(container.querySelector('.btn-success'));
+    await user.click(container.querySelector('.btn-success')!);
     expect(acceptAnswer).toHaveBeenCalledTimes(1);
   });
 
@@ -50,7 +50,7 @@ describe('ButtonFrame', () => {
         redraws={0}
         selectedNumbers={[1]}
         checkAnswer={vi.fn()}
-      />,
+      />
     );
 
     expect(container.querySelector('.btn-danger')).toBeInTheDocument();
