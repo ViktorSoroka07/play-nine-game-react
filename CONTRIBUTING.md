@@ -87,10 +87,14 @@ useEffect(() => {
 }, [usedNumbers]);
 ```
 
-**Correct:** Use `useMemo` with explicit dependencies
+**Correct:** Prefer inline computed values in render; use `useMemo` only for expensive calculations or when identity stability is required
 
 ```typescript
-// ✓ Correct
+// ✓ Also good (simple and clear)
+const doneStatus =
+  usedNumbers.length === 9 ? 'Done. Nice!' : redraws === 0 && !possibleSolutions() ? 'Game Over!' : null;
+
+// ✓ Correct when memoization is truly needed
 const doneStatus = useMemo((): string | null => {
   if (usedNumbers.length === 9) return 'Done. Nice!';
   if (redraws === 0 && !possibleSolutions()) return 'Game Over!';
@@ -98,11 +102,17 @@ const doneStatus = useMemo((): string | null => {
 }, [usedNumbers, redraws, possibleSolutions]);
 ```
 
-The difference: `useMemo` computes on every render but memoizes the result; `useEffect` runs after render. Using `useEffect` here causes timing issues and stale closures.
+The key rule is to avoid `useEffect` for derived state. With React Compiler enabled, `useMemo` is optional in many places and should be reserved for meaningful wins.
 
 ### useCallback for Event Handlers
 
-All event handlers passed to child components must be wrapped in `useCallback` to maintain referential stability:
+With React Compiler enabled, do not treat `useCallback` as mandatory. Prefer plain handlers first, then add `useCallback` only if:
+
+- a dependency array needs stable identity semantics,
+- you pass handlers into memoized/non-compiled boundaries,
+- or profiling shows a real rerender regression.
+
+Example when `useCallback` is justified:
 
 ```typescript
 // ✓ Correct
@@ -119,7 +129,7 @@ const selectNumber = useCallback(
 );
 ```
 
-This prevents unnecessary re-renders in child components and allows them to be memoized by the React Compiler.
+In short: keep the code simplest first, then memoize deliberately.
 
 ### Error Boundary
 
@@ -289,8 +299,8 @@ This automatically memoizes components and optimizes renders without requiring `
 ## Code Review Checklist
 
 - [ ] All `.tsx` files have proper `interface Props` and typed exports
-- [ ] No `useEffect` used for derived state (use `useMemo`)
-- [ ] All event handlers passed to children use `useCallback`
+- [ ] No `useEffect` used for derived state
+- [ ] `useMemo`/`useCallback` added only for semantic needs or measured performance issues
 - [ ] Components are functional (except ErrorBoundary)
 - [ ] Buttons are semantic `<button>` elements with `aria-label`
 - [ ] Keys use stable identifiers, not array indices

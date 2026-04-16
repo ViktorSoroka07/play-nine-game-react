@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useReducer } from 'react';
+import { useReducer } from 'react';
 
 import { getRandom, possibleCombinationSum } from '../../utils';
 import { StarsFrame } from '../StarsFrame';
@@ -31,7 +31,7 @@ const reducer = (state: GameState, newState: Partial<GameState>): GameState => (
 export function Game() {
   const [state, dispatch] = useReducer(reducer, undefined, getInitialState);
 
-  const possibleSolutions = useCallback((usedNumbers: number[], numberOfStars: number): boolean => {
+  const possibleSolutions = (usedNumbers: number[], numberOfStars: number): boolean => {
     const possibleNumbers: number[] = [];
 
     for (let number = 1; number <= 9; number++) {
@@ -41,37 +41,29 @@ export function Game() {
     }
 
     return possibleCombinationSum(possibleNumbers, numberOfStars);
-  }, []);
+  };
 
-  const doneStatus = useMemo((): string | null => {
-    if (state.usedNumbers.length === 9) {
-      return 'Done. Nice!';
-    }
+  let doneStatus: string | null = null;
+  if (state.usedNumbers.length === 9) {
+    doneStatus = 'Done. Nice!';
+  } else if (state.redraws === 0 && !possibleSolutions(state.usedNumbers, state.numberOfStars)) {
+    doneStatus = 'Game Over!';
+  }
 
-    if (state.redraws === 0 && !possibleSolutions(state.usedNumbers, state.numberOfStars)) {
-      return 'Game Over!';
-    }
-
-    return null;
-  }, [possibleSolutions, state.numberOfStars, state.redraws, state.usedNumbers]);
-
-  const resetGame = useCallback(() => {
+  const resetGame = () => {
     dispatch(getInitialState());
-  }, []);
+  };
 
-  const selectNumber = useCallback(
-    (clickedNumber: number) => {
-      if (state.selectedNumbers.indexOf(clickedNumber) < 0) {
-        dispatch({
-          selectedNumbers: state.selectedNumbers.concat(clickedNumber),
-          correct: null,
-        });
-      }
-    },
-    [state.selectedNumbers]
-  );
+  const selectNumber = (clickedNumber: number) => {
+    if (state.selectedNumbers.indexOf(clickedNumber) < 0) {
+      dispatch({
+        selectedNumbers: state.selectedNumbers.concat(clickedNumber),
+        correct: null,
+      });
+    }
+  };
 
-  const redraw = useCallback(() => {
+  const redraw = () => {
     if (state.redraws) {
       dispatch({
         selectedNumbers: [],
@@ -80,19 +72,16 @@ export function Game() {
         redraws: state.redraws - 1,
       });
     }
-  }, [state.redraws]);
+  };
 
-  const unselectNumber = useCallback(
-    (clickedNumber: number) => {
-      dispatch({
-        selectedNumbers: state.selectedNumbers.filter((n) => n !== clickedNumber),
-        correct: null,
-      });
-    },
-    [state.selectedNumbers]
-  );
+  const unselectNumber = (clickedNumber: number) => {
+    dispatch({
+      selectedNumbers: state.selectedNumbers.filter((n) => n !== clickedNumber),
+      correct: null,
+    });
+  };
 
-  const acceptAnswer = useCallback(() => {
+  const acceptAnswer = () => {
     const usedNumbers = state.usedNumbers.concat(state.selectedNumbers);
 
     dispatch({
@@ -101,16 +90,13 @@ export function Game() {
       correct: null,
       numberOfStars: getRandom(),
     });
-  }, [state.selectedNumbers, state.usedNumbers]);
+  };
 
-  const sumOfSelectedNumbers = useMemo(
-    () => state.selectedNumbers.reduce((sum, currentNumber) => sum + currentNumber, 0),
-    [state.selectedNumbers]
-  );
+  const sumOfSelectedNumbers = state.selectedNumbers.reduce((sum, currentNumber) => sum + currentNumber, 0);
 
-  const checkAnswer = useCallback(() => {
+  const checkAnswer = () => {
     dispatch({ correct: state.numberOfStars === sumOfSelectedNumbers });
-  }, [state.numberOfStars, sumOfSelectedNumbers]);
+  };
 
   return (
     <div id="game">
