@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { ErrorBoundary } from 'react-error-boundary';
 
-import { ErrorBoundary } from './ErrorBoundary';
+import { ErrorFallback } from './ErrorFallback';
 
 interface ThrowErrorProps {
   shouldThrow: boolean;
@@ -15,10 +16,10 @@ function ThrowError({ shouldThrow }: ThrowErrorProps) {
   return <div>Child content</div>;
 }
 
-describe('ErrorBoundary', () => {
+describe('ErrorFallback', () => {
   it('renders children when no error occurs', () => {
     render(
-      <ErrorBoundary>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
         <ThrowError shouldThrow={false} />
       </ErrorBoundary>
     );
@@ -29,7 +30,7 @@ describe('ErrorBoundary', () => {
   it('shows fallback UI and allows retry', async () => {
     const user = userEvent.setup();
     const { rerender } = render(
-      <ErrorBoundary>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>
     );
@@ -37,7 +38,7 @@ describe('ErrorBoundary', () => {
     expect(screen.getByRole('heading', { name: 'Something went wrong.' })).toBeInTheDocument();
 
     rerender(
-      <ErrorBoundary>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
         <ThrowError shouldThrow={false} />
       </ErrorBoundary>
     );

@@ -1,7 +1,8 @@
 import { createRoot } from 'react-dom/client';
+import { ErrorBoundary } from 'react-error-boundary';
 import '../style.css';
 
-import { ErrorBoundary, Game } from './components';
+import { ErrorFallback, Game } from './components';
 
 const container = document.getElementById('container');
 if (!container) {
@@ -11,7 +12,7 @@ if (!container) {
 const root = createRoot(container);
 
 root.render(
-  <ErrorBoundary>
+  <ErrorBoundary FallbackComponent={ErrorFallback}>
     <Game />
   </ErrorBoundary>
 );
