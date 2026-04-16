@@ -1,4 +1,4 @@
-export function possibleCombinationSum(arr, n) {
+export function possibleCombinationSum(arr: number[], n: number): boolean {
   if (arr.indexOf(n) >= 0) {
     return true;
   }
@@ -8,8 +8,7 @@ export function possibleCombinationSum(arr, n) {
   }
 
   if (arr[arr.length - 1] > n) {
-    arr.pop();
-    return possibleCombinationSum(arr, n);
+    return possibleCombinationSum(arr.slice(0, -1), n);
   }
 
   const listSize = arr.length;

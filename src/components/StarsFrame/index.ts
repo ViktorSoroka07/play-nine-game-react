@@ -1,0 +1,1 @@
+export { StarsFrame } from './StarsFrame';
