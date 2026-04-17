@@ -1,7 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
 
 import { Game } from './Game';
+import * as utils from '../../utils';
 import {
   getNumberButton,
   getAllNumberButtons,
@@ -178,6 +180,22 @@ describe('Game', () => {
     }
 
     expect(redrawBtn).toBeDisabled();
+  });
+
+  it('shows game over and play again when redraws are exhausted', async () => {
+    const user = userEvent.setup();
+    const possibleCombinationSpy = vi.spyOn(utils, 'possibleCombinationSum').mockReturnValue(true);
+
+    render(<Game />);
+
+    for (let i = 0; i < 5; i++) {
+      await user.click(getRedrawButton());
+    }
+
+    expect(screen.getByRole('heading', { name: 'Game Over!' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Play Again' })).toBeInTheDocument();
+
+    possibleCombinationSpy.mockRestore();
   });
 
   it('clears selection when redrawing', async () => {
