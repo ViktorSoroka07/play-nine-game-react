@@ -1,7 +1,7 @@
 import { useReducer } from 'react';
 import './Game.css';
 
-import { getRandom, possibleCombinationSum } from '../../utils';
+import { getRandom } from '../../utils';
 import { StarsFrame } from '../StarsFrame';
 import { DoneFrame } from '../DoneFrame';
 import { NumbersFrame } from '../NumbersFrame';
@@ -32,23 +32,11 @@ const reducer = (state: GameState, newState: Partial<GameState>): GameState => (
 export function Game() {
   const [state, dispatch] = useReducer(reducer, undefined, getInitialState);
 
-  const possibleSolutions = (usedNumbers: number[], numberOfStars: number): boolean => {
-    const possibleNumbers: number[] = [];
-
-    for (let number = 1; number <= 9; number++) {
-      if (usedNumbers.indexOf(number) < 0) {
-        possibleNumbers.push(number);
-      }
-    }
-
-    return possibleCombinationSum(possibleNumbers, numberOfStars);
-  };
-
   let doneStatus: string | null = null;
 
   if (state.usedNumbers.length === 9) {
     doneStatus = 'Done. Nice!';
-  } else if (state.redraws === 0 && !possibleSolutions(state.usedNumbers, state.numberOfStars)) {
+  } else if (state.redraws === 0) {
     doneStatus = 'Game Over!';
   }
 
