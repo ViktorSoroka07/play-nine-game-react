@@ -33,3 +33,7 @@ Run `npm install`.
 - TypeScript
 - Vite
 - Vitest + Testing Library
+
+## License
+
+MIT - see [LICENSE](LICENSE).

@@ -43,5 +43,5 @@
     "coverage": "vitest run --coverage"
   },
   "author": "Viktor Soroka",
-  "license": "ISC"
+  "license": "MIT"
 }
