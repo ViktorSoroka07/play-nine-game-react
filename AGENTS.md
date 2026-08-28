@@ -8,9 +8,10 @@ Production-ready card game built with **React 19**, **TypeScript**, **Vite**, **
 npm install              # install dependencies
 npm run dev              # dev server at http://localhost:8080
 npm test                 # vitest in watch mode
-npm run coverage         # coverage report (93.45% statements)
-npm run build            # production build (~62KB gzip)
-npm run lint             # ESLint + TypeScript check
+npm run coverage         # coverage report (93.19% statements)
+npm run build            # production build (~64KB gzip)
+npm run lint             # ESLint
+npm run typecheck        # tsc --noEmit (must be 0 errors)
 docker-compose up        # containerised dev (port 8080)
 ```
 
@@ -19,9 +20,10 @@ docker-compose up        # containerised dev (port 8080)
 ```
 src/
   index.tsx              # app entry point
-  components/            # 6 components, each with .tsx, .test.tsx, index.ts
+  constants.ts           # board size and starting redraws
+  components/            # 7 components, each with .tsx, .test.tsx, index.ts
     Game/                # root component, useReducer state management
-    ErrorBoundary/       # error recovery
+    ErrorFallback/       # render-time error UI for react-error-boundary
     StarsFrame/          # displays random 1–9
     NumbersFrame/        # 1–9 clickable grid
     AnswerFrame/         # selected numbers
@@ -33,16 +35,18 @@ src/
   test/
     setup.ts             # vitest setup
 
-vite.config.ts           # React compiler enabled
-tsconfig.json            # strict mode
+vite.config.ts           # the only Vite config; React Compiler enabled
+tsconfig.json            # strict + noUncheckedIndexedAccess
 eslint.config.js         # React Hooks rules enforced
+.github/workflows/ci.yml # lint, typecheck, coverage, build
 ```
 
 ## Key Patterns
 
 **State Management**
 
-- Use `useReducer` for multi-field state: `dispatch({ field: value })`
+- `useReducer` with a discriminated-union action: `dispatch({ type: 'SELECT_NUMBER', number })`
+- Every transition is a named case in the reducer; components never merge partial state
 - Factory function: `getInitialState()` ensures fresh `getRandom()` on reset
 
 **Components**
@@ -59,5 +63,8 @@ eslint.config.js         # React Hooks rules enforced
 
 - Target 100% coverage per component
 - Use `userEvent.setup()` + `within()` for interactions
+- **Never assert against real randomness.** Script the draw with
+  `vi.spyOn(utils, 'getRandom')` - a test that retries until the dice cooperate
+  is a hidden probability, not a test
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed architecture patterns.

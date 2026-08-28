@@ -1,92 +1,113 @@
 import { useReducer } from 'react';
 import './Game.css';
 
-import { getRandom } from '../../utils';
+import { ALL_NUMBERS, INITIAL_REDRAWS, TOTAL_NUMBERS } from '../../constants';
+import { getRandom, possibleCombinationSum } from '../../utils';
 import { StarsFrame } from '../StarsFrame';
 import { DoneFrame } from '../DoneFrame';
 import { NumbersFrame } from '../NumbersFrame';
 import { ButtonFrame } from '../ButtonFrame';
 import { AnswerFrame } from '../AnswerFrame';
 
+export type AnswerStatus = 'unchecked' | 'correct' | 'wrong';
+
 interface GameState {
   selectedNumbers: number[];
   numberOfStars: number;
-  correct: boolean | null;
+  answerStatus: AnswerStatus;
   usedNumbers: number[];
   redraws: number;
 }
 
+type GameAction =
+  | { type: 'SELECT_NUMBER'; number: number }
+  | { type: 'UNSELECT_NUMBER'; number: number }
+  | { type: 'CHECK_ANSWER' }
+  | { type: 'ACCEPT_ANSWER' }
+  | { type: 'REDRAW' }
+  | { type: 'RESET' };
+
 const getInitialState = (): GameState => ({
   selectedNumbers: [],
   numberOfStars: getRandom(),
-  correct: null,
+  answerStatus: 'unchecked',
   usedNumbers: [],
-  redraws: 5,
+  redraws: INITIAL_REDRAWS,
 });
 
-const reducer = (state: GameState, newState: Partial<GameState>): GameState => ({
-  ...state,
-  ...newState,
-});
+function reducer(state: GameState, action: GameAction): GameState {
+  switch (action.type) {
+    case 'SELECT_NUMBER': {
+      if (state.selectedNumbers.includes(action.number)) {
+        return state;
+      }
+
+      return {
+        ...state,
+        selectedNumbers: [...state.selectedNumbers, action.number],
+        answerStatus: 'unchecked',
+      };
+    }
+
+    case 'UNSELECT_NUMBER':
+      return {
+        ...state,
+        selectedNumbers: state.selectedNumbers.filter((number) => number !== action.number),
+        answerStatus: 'unchecked',
+      };
+
+    case 'CHECK_ANSWER': {
+      const sum = state.selectedNumbers.reduce((total, number) => total + number, 0);
+
+      return {
+        ...state,
+        answerStatus: sum === state.numberOfStars ? 'correct' : 'wrong',
+      };
+    }
+
+    case 'ACCEPT_ANSWER':
+      return {
+        ...state,
+        usedNumbers: [...state.usedNumbers, ...state.selectedNumbers],
+        selectedNumbers: [],
+        answerStatus: 'unchecked',
+        numberOfStars: getRandom(),
+      };
+
+    case 'REDRAW': {
+      if (state.redraws === 0) {
+        return state;
+      }
+
+      return {
+        ...state,
+        selectedNumbers: [],
+        numberOfStars: getRandom(),
+        answerStatus: 'unchecked',
+        redraws: state.redraws - 1,
+      };
+    }
+
+    case 'RESET':
+      return getInitialState();
+  }
+}
 
 export function Game() {
   const [state, dispatch] = useReducer(reducer, undefined, getInitialState);
 
+  // The numbers still on the board. `possibleCombinationSum` needs them ascending,
+  // which ALL_NUMBERS already is.
+  const unusedNumbers = ALL_NUMBERS.filter((number) => !state.usedNumbers.includes(number));
+
   let doneStatus: string | null = null;
 
-  if (state.usedNumbers.length === 9) {
+  if (state.usedNumbers.length === TOTAL_NUMBERS) {
     doneStatus = 'Done. Nice!';
-  } else if (state.redraws === 0) {
+  } else if (state.redraws === 0 && !possibleCombinationSum(unusedNumbers, state.numberOfStars)) {
+    // Out of redraws AND no remaining combination adds up to the draw: the board is unwinnable.
     doneStatus = 'Game Over!';
   }
-
-  const resetGame = () => {
-    dispatch(getInitialState());
-  };
-
-  const selectNumber = (clickedNumber: number) => {
-    if (state.selectedNumbers.indexOf(clickedNumber) < 0) {
-      dispatch({
-        selectedNumbers: state.selectedNumbers.concat(clickedNumber),
-        correct: null,
-      });
-    }
-  };
-
-  const redraw = () => {
-    if (state.redraws) {
-      dispatch({
-        selectedNumbers: [],
-        numberOfStars: getRandom(),
-        correct: null,
-        redraws: state.redraws - 1,
-      });
-    }
-  };
-
-  const unselectNumber = (clickedNumber: number) => {
-    dispatch({
-      selectedNumbers: state.selectedNumbers.filter((n) => n !== clickedNumber),
-      correct: null,
-    });
-  };
-
-  const acceptAnswer = () => {
-    const usedNumbers = state.usedNumbers.concat(state.selectedNumbers);
-
-    dispatch({
-      usedNumbers,
-      selectedNumbers: [],
-      correct: null,
-      numberOfStars: getRandom(),
-    });
-  };
-
-  const sumOfSelectedNumbers = state.selectedNumbers.reduce((sum, currentNumber) => sum + currentNumber, 0);
-
-  const checkAnswer = () => {
-    dispatch({ correct: state.numberOfStars === sumOfSelectedNumbers });
-  };
 
   return (
     <div className="game">
@@ -96,20 +117,23 @@ export function Game() {
         <StarsFrame numberOfStars={state.numberOfStars} />
         <ButtonFrame
           selectedNumbers={state.selectedNumbers}
-          correct={state.correct}
-          checkAnswer={checkAnswer}
-          acceptAnswer={acceptAnswer}
-          redraw={redraw}
+          answerStatus={state.answerStatus}
+          checkAnswer={() => dispatch({ type: 'CHECK_ANSWER' })}
+          acceptAnswer={() => dispatch({ type: 'ACCEPT_ANSWER' })}
+          redraw={() => dispatch({ type: 'REDRAW' })}
           redraws={state.redraws}
         />
-        <AnswerFrame selectedNumbers={state.selectedNumbers} unselectNumber={unselectNumber} />
+        <AnswerFrame
+          selectedNumbers={state.selectedNumbers}
+          unselectNumber={(number) => dispatch({ type: 'UNSELECT_NUMBER', number })}
+        />
       </div>
       {doneStatus ? (
-        <DoneFrame doneStatus={doneStatus} resetGame={resetGame} />
+        <DoneFrame doneStatus={doneStatus} resetGame={() => dispatch({ type: 'RESET' })} />
       ) : (
         <NumbersFrame
           selectedNumbers={state.selectedNumbers}
-          selectNumber={selectNumber}
+          selectNumber={(number) => dispatch({ type: 'SELECT_NUMBER', number })}
           usedNumbers={state.usedNumbers}
         />
       )}

@@ -16,4 +16,12 @@ describe('possibleCombinationSum', () => {
   it('returns false when no combination can reach target', () => {
     expect(possibleCombinationSum([2, 4, 6], 5)).toBe(false);
   });
+
+  it('returns false for an empty board', () => {
+    expect(possibleCombinationSum([], 3)).toBe(false);
+  });
+
+  it('drops values larger than the target before searching', () => {
+    expect(possibleCombinationSum([1, 2, 9], 3)).toBe(true);
+  });
 });

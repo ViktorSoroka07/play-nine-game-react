@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { vi } from 'vitest';
+import { afterEach, vi } from 'vitest';
 
 import { Game } from './Game';
 import * as utils from '../../utils';
@@ -15,19 +15,41 @@ import {
   getStarsCount,
 } from '../../test/selectors';
 
+// The board draws its star count from `getRandom`. Scripting that draw is what
+// makes these tests deterministic - asserting against real randomness means
+// asserting against a probability.
+const drawStars = (...counts: number[]) => {
+  const spy = vi.spyOn(utils, 'getRandom');
+
+  counts.forEach((count) => spy.mockReturnValueOnce(count));
+
+  // Any draw past the scripted ones repeats the last, so a test never falls
+  // back to real randomness.
+  return spy.mockReturnValue(counts[counts.length - 1] ?? 1);
+};
+
+const getRedrawsLeft = () => parseInt(getRedrawButton().textContent?.match(/\d+/)?.[0] ?? '0', 10);
+
 describe('Game', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('renders with initial state', () => {
+    drawStars(6);
+
     render(<Game />);
 
     expect(screen.getByRole('heading', { name: 'Play Nine' })).toBeInTheDocument();
     expect(getAllNumberButtons()).toHaveLength(9);
-    expect(screen.getByRole('img', { name: /Stars:/ })).toBeInTheDocument();
+    expect(getStarsCount()).toBe(6);
     expect(getAllUnselectButtons()).toHaveLength(0);
   });
 
   it('allows selecting and unselecting numbers', async () => {
     const user = userEvent.setup();
 
+    drawStars(6);
     render(<Game />);
 
     await user.click(getNumberButton(4));
@@ -40,6 +62,7 @@ describe('Game', () => {
   it('prevents selecting the same number twice', async () => {
     const user = userEvent.setup();
 
+    drawStars(6);
     render(<Game />);
 
     const button5 = getNumberButton(5);
@@ -51,139 +74,118 @@ describe('Game', () => {
     expect(screen.getAllByRole('button', { name: 'Unselect 5' })).toHaveLength(1);
   });
 
-  it('disables used numbers after acceptance', async () => {
+  it('accepts a correct answer and disables the numbers it used', async () => {
     const user = userEvent.setup();
 
+    // 1 + 2 = 3 is correct for this draw; the next draw is scripted too.
+    drawStars(3, 7);
     render(<Game />);
 
-    // Select 1+2
     await user.click(getNumberButton(1));
     await user.click(getNumberButton(2));
     await user.click(getCheckAnswerButton());
 
-    // May be correct or incorrect; if correct, accept it
     const acceptButton = getAcceptAnswerButton();
 
-    if (acceptButton) {
-      await user.click(acceptButton);
-      // 1 and 2 should now be disabled
-      expect(getNumberButton(1)).toBeDisabled();
-      expect(getNumberButton(2)).toBeDisabled();
-    }
+    expect(acceptButton).toBeInTheDocument();
+
+    await user.click(acceptButton!);
+
+    expect(getNumberButton(1)).toBeDisabled();
+    expect(getNumberButton(2)).toBeDisabled();
+    expect(getStarsCount()).toBe(7);
+    expect(getAllUnselectButtons()).toHaveLength(0);
   });
 
-  it('handles correct answers', async () => {
+  it('rejects a wrong answer', async () => {
     const user = userEvent.setup();
 
+    // 1 alone can never equal 9.
+    drawStars(9);
     render(<Game />);
 
-    // Keep trying different combinations until we get a correct answer
-    // Get the target star count
-    const starCount = getStarsCount();
-
-    // Try to find a combination that sums to the star count
-    const maxAttempts = 10;
-
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      // Clear previous selections
-      const selectedButtons = getAllUnselectButtons();
-
-      for (const btn of selectedButtons) {
-        await user.click(btn);
-      }
-
-      // Select numbers that sum to starCount (try 1+2+... pattern)
-      let sum = 0;
-
-      for (let num = 1; num <= 9 && sum < starCount; num++) {
-        const numberBtn = getNumberButton(num);
-        const isDisabled = (numberBtn as HTMLButtonElement).disabled;
-
-        if (!isDisabled && sum + num <= starCount) {
-          await user.click(numberBtn);
-          sum += num;
-        }
-      }
-
-      if (sum === starCount) {
-        // Found a correct combination
-        await user.click(getCheckAnswerButton());
-        expect(screen.getByRole('button', { name: 'Accept answer' })).toBeInTheDocument();
-        break;
-      }
-
-      // Try again with different combination
-      if (attempt < maxAttempts - 1) {
-        // Reset for next attempt
-        const refreshBtn = getRedrawButton();
-
-        if (!refreshBtn.hasAttribute('disabled')) {
-          await user.click(refreshBtn);
-        }
-      }
-    }
-  });
-
-  it('handles wrong answers', async () => {
-    const user = userEvent.setup();
-
-    render(<Game />);
-
-    // Select numbers that definitely won't sum to any reasonable star count
     await user.click(getNumberButton(1));
-    await user.click(getNumberButton(2));
     await user.click(getCheckAnswerButton());
 
-    // Check if it's wrong (may happen randomly)
-    const wrongButton = screen.queryByRole('button', { name: 'Wrong answer' });
+    const wrongButton = screen.getByRole('button', { name: 'Wrong answer' });
 
-    if (wrongButton) {
-      expect(wrongButton).toBeInTheDocument();
-      expect(wrongButton).toBeDisabled();
-    }
+    expect(wrongButton).toBeInTheDocument();
+    expect(wrongButton).toBeDisabled();
+    expect(getAcceptAnswerButton()).not.toBeInTheDocument();
   });
 
-  it('decrements redraws count', async () => {
+  it('clears the wrong-answer state when the selection changes', async () => {
     const user = userEvent.setup();
 
+    drawStars(9);
     render(<Game />);
 
-    const getRedraws = () => {
-      const redrawBtn = getRedrawButton();
-      const redraws = redrawBtn.textContent?.match(/\d+/)?.[0] || '0';
+    await user.click(getNumberButton(1));
+    await user.click(getCheckAnswerButton());
+    expect(screen.getByRole('button', { name: 'Wrong answer' })).toBeInTheDocument();
 
-      return parseInt(redraws, 10);
-    };
-
-    const initialRedraws = getRedraws();
-
-    expect(initialRedraws).toBe(5);
-
-    const redrawBtn = getRedrawButton();
-
-    await user.click(redrawBtn);
-
-    expect(getRedraws()).toBe(initialRedraws - 1);
+    await user.click(getNumberButton(2));
+    expect(screen.queryByRole('button', { name: 'Wrong answer' })).not.toBeInTheDocument();
+    expect(getCheckAnswerButton()).toBeEnabled();
   });
 
-  it('disables redraw button when no redraws left', async () => {
+  it('decrements the redraw count and clears the selection', async () => {
     const user = userEvent.setup();
 
+    drawStars(6, 2);
     render(<Game />);
 
-    const redrawBtn = getRedrawButton();
+    expect(getRedrawsLeft()).toBe(5);
 
-    // Use all 5 redraws
+    await user.click(getNumberButton(3));
+    expect(getUnselectButton(3)).toBeInTheDocument();
+
+    await user.click(getRedrawButton());
+
+    expect(getRedrawsLeft()).toBe(4);
+    expect(getStarsCount()).toBe(2);
+    expect(getUnselectButton(3)).not.toBeInTheDocument();
+  });
+
+  it('disables the redraw button once no redraws are left', async () => {
+    const user = userEvent.setup();
+
+    drawStars(6);
+    render(<Game />);
+
     for (let i = 0; i < 5; i++) {
-      expect(redrawBtn).toBeEnabled();
-      await user.click(redrawBtn);
+      expect(getRedrawButton()).toBeEnabled();
+
+      await user.click(getRedrawButton());
     }
 
-    expect(redrawBtn).toBeDisabled();
+    expect(getRedrawButton()).toBeDisabled();
+    expect(getRedrawsLeft()).toBe(0);
   });
 
-  it('shows game over and play again when redraws are exhausted', async () => {
+  it('ends the game when redraws run out and no combination is left', async () => {
     const user = userEvent.setup();
+
+    drawStars(6);
+
+    const possibleCombinationSpy = vi.spyOn(utils, 'possibleCombinationSum').mockReturnValue(false);
+
+    render(<Game />);
+
+    for (let i = 0; i < 5; i++) {
+      await user.click(getRedrawButton());
+    }
+
+    expect(possibleCombinationSpy).toHaveBeenCalled();
+    expect(screen.getByRole('heading', { name: 'Game Over!' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Play Again' })).toBeInTheDocument();
+  });
+
+  it('keeps playing when redraws run out but a combination is still possible', async () => {
+    const user = userEvent.setup();
+
+    drawStars(6);
+
     const possibleCombinationSpy = vi.spyOn(utils, 'possibleCombinationSum').mockReturnValue(true);
 
     render(<Game />);
@@ -192,79 +194,56 @@ describe('Game', () => {
       await user.click(getRedrawButton());
     }
 
-    expect(screen.getByRole('heading', { name: 'Game Over!' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Play Again' })).toBeInTheDocument();
-
-    possibleCombinationSpy.mockRestore();
-  });
-
-  it('clears selection when redrawing', async () => {
-    const user = userEvent.setup();
-
-    render(<Game />);
-
-    // Select a number
-    await user.click(getNumberButton(3));
-    expect(getUnselectButton(3)).toBeInTheDocument();
-
-    // Redraw
-    const redrawBtn = getRedrawButton();
-
-    await user.click(redrawBtn);
-
-    // Selection should be cleared
-    expect(getUnselectButton(3)).not.toBeInTheDocument();
-  });
-
-  it('shows done frame when all 9 numbers are used', async () => {
-    // This is hard to test without mocking, as it requires accepting 9 valid combinations
-    // We'll do a simplified version that just verifies the logic structure
-    render(<Game />);
-
-    // The DoneFrame won't show unless we complete the game, which requires perfect play
-    // For now, verify the structure is present
-    expect(screen.getByRole('heading', { name: 'Play Nine' })).toBeInTheDocument();
-  });
-
-  it('resets game when Play Again is clicked', async () => {
-    const user = userEvent.setup();
-
-    render(<Game />);
-
-    // Select numbers and check answer
-    await user.click(getNumberButton(1));
-    await user.click(getCheckAnswerButton());
-
-    // If correct, accept and continue until we can see the reset button
-    const acceptBtn = getAcceptAnswerButton();
-
-    if (acceptBtn) {
-      await user.click(acceptBtn);
-    }
-
-    // Since we can't easily force a win, we verify the structure
-    // The game should have numbers buttons available
+    expect(possibleCombinationSpy).toHaveBeenCalledWith([1, 2, 3, 4, 5, 6, 7, 8, 9], 6);
+    expect(screen.queryByRole('heading', { name: 'Game Over!' })).not.toBeInTheDocument();
     expect(getAllNumberButtons()).toHaveLength(9);
   });
 
-  it('check answer button is disabled when no numbers selected', () => {
-    render(<Game />);
-
-    const checkBtn = getCheckAnswerButton();
-
-    expect(checkBtn).toBeDisabled();
-  });
-
-  it('check answer button is enabled when numbers are selected', async () => {
+  it('shows the done frame after every number has been used', async () => {
     const user = userEvent.setup();
 
+    // Draw 1, then 2, ... so each turn is solved by a single number.
+    drawStars(1, 2, 3, 4, 5, 6, 7, 8, 9, 1);
     render(<Game />);
 
-    const checkBtn = getCheckAnswerButton();
+    for (let number = 1; number <= 9; number++) {
+      await user.click(getNumberButton(number));
+      await user.click(getCheckAnswerButton());
+      await user.click(getAcceptAnswerButton()!);
+    }
 
-    expect(checkBtn).toBeDisabled();
+    expect(screen.getByRole('heading', { name: 'Done. Nice!' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Number \d/ })).not.toBeInTheDocument();
+  });
+
+  it('resets to a fresh board when Play Again is clicked', async () => {
+    const user = userEvent.setup();
+
+    drawStars(6);
+    vi.spyOn(utils, 'possibleCombinationSum').mockReturnValue(false);
+
+    render(<Game />);
+
+    for (let i = 0; i < 5; i++) {
+      await user.click(getRedrawButton());
+    }
+
+    await user.click(screen.getByRole('button', { name: 'Play Again' }));
+
+    expect(getAllNumberButtons()).toHaveLength(9);
+    expect(getRedrawsLeft()).toBe(5);
+    expect(getAllUnselectButtons()).toHaveLength(0);
+  });
+
+  it('enables the check button only once a number is selected', async () => {
+    const user = userEvent.setup();
+
+    drawStars(6);
+    render(<Game />);
+
+    expect(getCheckAnswerButton()).toBeDisabled();
 
     await user.click(getNumberButton(5));
-    expect(checkBtn).toBeEnabled();
+    expect(getCheckAnswerButton()).toBeEnabled();
   });
 });

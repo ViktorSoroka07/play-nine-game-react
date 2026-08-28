@@ -11,7 +11,7 @@ describe('ButtonFrame', () => {
 
     render(
       <ButtonFrame
-        correct={null}
+        answerStatus="unchecked"
         acceptAnswer={vi.fn()}
         redraw={vi.fn()}
         redraws={5}
@@ -30,7 +30,7 @@ describe('ButtonFrame', () => {
 
     render(
       <ButtonFrame
-        correct={true}
+        answerStatus="correct"
         acceptAnswer={acceptAnswer}
         redraw={vi.fn()}
         redraws={5}
@@ -46,7 +46,7 @@ describe('ButtonFrame', () => {
   it('renders wrong-answer state and redraw disabled when no redraws left', () => {
     render(
       <ButtonFrame
-        correct={false}
+        answerStatus="wrong"
         acceptAnswer={vi.fn()}
         redraw={vi.fn()}
         redraws={0}

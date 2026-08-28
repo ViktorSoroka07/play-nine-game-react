@@ -1,5 +1,7 @@
 import './NumbersFrame.css';
 
+import { ALL_NUMBERS } from '../../constants';
+
 interface NumbersFrameProps {
   usedNumbers: number[];
   selectedNumbers: number[];
@@ -10,27 +12,24 @@ export function NumbersFrame({ usedNumbers, selectedNumbers, selectNumber }: Num
   return (
     <div className="numbers-frame">
       <div className="well">
-        {Array.from({ length: 9 })
-          .map((_, i) => i + 1)
-          .map((number) => {
-            const isSelected = selectedNumbers.indexOf(number) >= 0;
-            const isUsed = usedNumbers.indexOf(number) >= 0;
-            const className = 'number selected-' + isSelected + ' used-' + isUsed;
+        {ALL_NUMBERS.map((number) => {
+          const isSelected = selectedNumbers.includes(number);
+          const isUsed = usedNumbers.includes(number);
 
-            return (
-              <button
-                type="button"
-                key={number}
-                className={className}
-                onClick={() => selectNumber(number)}
-                disabled={isUsed}
-                aria-pressed={isSelected}
-                aria-label={`Number ${number}`}
-              >
-                {number}
-              </button>
-            );
-          })}
+          return (
+            <button
+              type="button"
+              key={number}
+              className={`number selected-${isSelected} used-${isUsed}`}
+              onClick={() => selectNumber(number)}
+              disabled={isUsed}
+              aria-pressed={isSelected}
+              aria-label={`Number ${number}`}
+            >
+              {number}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

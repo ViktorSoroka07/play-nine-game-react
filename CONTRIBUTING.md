@@ -13,14 +13,22 @@ This guide covers architecture patterns, development practices, and testing appr
 
 ## State Management
 
-The **Game** component uses `useReducer` with a simple merge reducer:
+The **Game** component uses `useReducer` with a discriminated-union action type:
 
 ```typescript
-const reducer = (state: GameState, newState: Partial<GameState>): GameState => ({
-  ...state,
-  ...newState,
-});
+type GameAction =
+  | { type: 'SELECT_NUMBER'; number: number }
+  | { type: 'UNSELECT_NUMBER'; number: number }
+  | { type: 'CHECK_ANSWER' }
+  | { type: 'ACCEPT_ANSWER' }
+  | { type: 'REDRAW' }
+  | { type: 'RESET' };
 ```
+
+**Key principle:** every transition is a named case inside the reducer. A
+`Partial<GameState>` merge reducer is `setState` with extra ceremony - it
+centralises nothing, and it lets any caller write any field. Naming the
+transitions is the reason to reach for `useReducer` at all.
 
 **Key principle:** Initial state is created via `getInitialState()` factory function, not a constant. This ensures `getRandom()` is called fresh on every reset, not evaluated once at module load.
 
@@ -39,12 +47,24 @@ const initialState = { numberOfStars: getRandom(), ... };
 All state transitions use `dispatch()`:
 
 ```typescript
-// ✓ Always dispatch
-dispatch({ selectedNumbers: [...selectedNumbers, num], correct: null });
+// ✓ Always dispatch a named action
+dispatch({ type: 'SELECT_NUMBER', number });
+
+// ✗ Never dispatch a partial state bag
+dispatch({ selectedNumbers: [...selectedNumbers, number], correct: null });
 
 // ✗ Never useState for multi-field state
 const [selectedNumbers, setSelectedNumbers] = useState([]);
 const [correct, setCorrect] = useState(null);
+```
+
+### Answer state is a union, not a tri-state boolean
+
+`boolean | null` for "correct?" forces a nested ternary at every read site and
+makes `null` quietly mean "not asked yet". Name the three states instead:
+
+```typescript
+type AnswerStatus = 'unchecked' | 'correct' | 'wrong';
 ```
 
 ## Component Structure
@@ -116,17 +136,9 @@ Example when `useCallback` is justified:
 
 ```typescript
 // ✓ Correct
-const selectNumber = useCallback(
-  (clickedNumber: number) => {
-    if (state.selectedNumbers.indexOf(clickedNumber) < 0) {
-      dispatch({
-        selectedNumbers: state.selectedNumbers.concat(clickedNumber),
-        correct: null,
-      });
-    }
-  },
-  [state.selectedNumbers]
-);
+const selectNumber = useCallback((clickedNumber: number) => {
+  dispatch({ type: 'SELECT_NUMBER', number: clickedNumber });
+}, []);
 ```
 
 In short: keep the code simplest first, then memoize deliberately.
@@ -236,11 +248,26 @@ Aim for **100% statement + branch coverage** per component.
 
 Current status:
 
-- **Game**: 88.39% (complex game logic, some branches hard to test)
-- **AnswerFrame, ButtonFrame, DoneFrame, NumbersFrame, StarsFrame**: 100%
-- **ErrorBoundary**: 96%
+- **Game**: 98.03% statements, 97.29% branches
+- **AnswerFrame, ButtonFrame, DoneFrame, NumbersFrame, StarsFrame**: 100% statements
+- **ErrorFallback**: 100% statements
 - **Utilities**: 100%
-- **Overall**: 93.45% statements, 87.93% branches
+- **Overall**: 93.19% statements, 85.71% branches (the remainder is `index.tsx`,
+  the entry point, and the barrel `index.ts` files)
+
+### Determinism
+
+The board's draw comes from `getRandom`. Tests script it rather than play
+against it:
+
+```typescript
+const spy = vi.spyOn(utils, 'getRandom');
+
+spy.mockReturnValueOnce(3); // this turn is solved by 1 + 2
+```
+
+A test that retries until random values cooperate is not a test - it is a
+probability, and it will fail in CI at exactly that rate.
 
 ## Adding a New Component
 
@@ -269,11 +296,15 @@ export function NumbersFrame({ usedNumbers, selectedNumbers, selectNumber }: Num
 **Commands:**
 
 ```bash
-npm run lint          # ESLint + TypeScript check (must pass with 0 errors)
+npm run lint          # ESLint (must pass with 0 errors)
+npm run typecheck     # tsc --noEmit (must pass with 0 errors)
 npm test              # Run tests in watch mode
 npm run coverage      # Full coverage report
 npm run build         # Production build (must succeed with 0 warnings)
 ```
+
+ESLint does not type-check. `npm run typecheck` is a separate gate, and CI runs
+both - see `.github/workflows/ci.yml`.
 
 **Rules enforced:**
 
@@ -306,5 +337,6 @@ This automatically memoizes components and optimizes renders without requiring `
 - [ ] Keys use stable identifiers, not array indices
 - [ ] Test file exists with 100% coverage target
 - [ ] `npm run lint` passes (0 errors)
+- [ ] `npm run typecheck` passes (0 errors)
 - [ ] `npm test` passes
 - [ ] `npm run build` succeeds with 0 warnings

@@ -5,11 +5,13 @@ interface StarsFrameProps {
 }
 
 export function StarsFrame({ numberOfStars }: StarsFrameProps) {
+  const stars = Array.from({ length: numberOfStars }, (_, index) => index + 1);
+
   return (
     <div className="stars-frame">
       <div className="well" role="img" aria-label={`Stars: ${numberOfStars}`}>
-        {Array.from({ length: numberOfStars }).map((_, index) => (
-          <span key={index} className="glyphicon glyphicon-star" aria-hidden="true" />
+        {stars.map((star) => (
+          <span key={star} className="glyphicon glyphicon-star" aria-hidden="true" />
         ))}
       </div>
     </div>

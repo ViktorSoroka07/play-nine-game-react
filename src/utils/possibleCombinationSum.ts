@@ -1,25 +1,38 @@
+/**
+ * Can any subset of `arr` add up to exactly `n`?
+ *
+ * `arr` must be sorted ascending - the two early exits below rely on the
+ * smallest value being first and the largest last.
+ */
 export function possibleCombinationSum(arr: number[], n: number): boolean {
-  if (arr.indexOf(n) >= 0) {
+  if (arr.includes(n)) {
     return true;
   }
 
-  if (arr[0] > n) {
+  const smallest = arr[0];
+  const largest = arr[arr.length - 1];
+
+  if (smallest === undefined || largest === undefined) {
     return false;
   }
 
-  if (arr[arr.length - 1] > n) {
+  if (smallest > n) {
+    return false;
+  }
+
+  if (largest > n) {
     return possibleCombinationSum(arr.slice(0, -1), n);
   }
 
-  const listSize = arr.length;
-  const combinationsCount = 1 << listSize;
+  // Every subset is a bit pattern over the list: bit j set means arr[j] is in.
+  const combinationsCount = 1 << arr.length;
 
-  for (let i = 1; i < combinationsCount; i++) {
+  for (let combination = 1; combination < combinationsCount; combination++) {
     let combinationSum = 0;
 
-    for (let j = 0; j < listSize; j++) {
-      if (i & (1 << j)) {
-        combinationSum += arr[j];
+    for (const [index, value] of arr.entries()) {
+      if (combination & (1 << index)) {
+        combinationSum += value;
       }
     }
 

@@ -1,7 +1,9 @@
 import './ButtonFrame.css';
 
+import type { AnswerStatus } from '../Game/Game';
+
 interface ButtonFrameProps {
-  correct: boolean | null;
+  answerStatus: AnswerStatus;
   acceptAnswer: () => void;
   redraw: () => void;
   redraws: number;
@@ -9,8 +11,42 @@ interface ButtonFrameProps {
   checkAnswer: () => void;
 }
 
+function AnswerButton({
+  answerStatus,
+  acceptAnswer,
+  checkAnswer,
+  selectedNumbers,
+}: Pick<ButtonFrameProps, 'answerStatus' | 'acceptAnswer' | 'checkAnswer' | 'selectedNumbers'>) {
+  if (answerStatus === 'correct') {
+    return (
+      <button className="btn btn-success btn-lg" onClick={acceptAnswer} aria-label="Accept answer">
+        <span className="glyphicon glyphicon-ok" aria-hidden="true" />
+      </button>
+    );
+  }
+
+  if (answerStatus === 'wrong') {
+    return (
+      <button className="btn btn-danger btn-lg" disabled aria-label="Wrong answer">
+        <span className="glyphicon glyphicon-remove" aria-hidden="true" />
+      </button>
+    );
+  }
+
+  return (
+    <button
+      className="btn btn-primary btn-lg"
+      disabled={!selectedNumbers.length}
+      onClick={checkAnswer}
+      aria-label="Check answer"
+    >
+      =
+    </button>
+  );
+}
+
 export function ButtonFrame({
-  correct,
+  answerStatus,
   acceptAnswer,
   redraw,
   redraws,
@@ -19,24 +55,12 @@ export function ButtonFrame({
 }: ButtonFrameProps) {
   return (
     <div className="button-frame">
-      {correct ? (
-        <button className="btn btn-success btn-lg" onClick={acceptAnswer} aria-label="Accept answer">
-          <span className="glyphicon glyphicon-ok" aria-hidden="true" />
-        </button>
-      ) : correct !== null ? (
-        <button className="btn btn-danger btn-lg" disabled aria-label="Wrong answer">
-          <span className="glyphicon glyphicon-remove" aria-hidden="true" />
-        </button>
-      ) : (
-        <button
-          className="btn btn-primary btn-lg"
-          disabled={!selectedNumbers.length}
-          onClick={checkAnswer}
-          aria-label="Check answer"
-        >
-          =
-        </button>
-      )}
+      <AnswerButton
+        answerStatus={answerStatus}
+        acceptAnswer={acceptAnswer}
+        checkAnswer={checkAnswer}
+        selectedNumbers={selectedNumbers}
+      />
       <br />
       <br />
       <button className="btn btn-warning btn-xs" onClick={redraw} disabled={!redraws} aria-label="Redraw">
