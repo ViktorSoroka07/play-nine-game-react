@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1212" height="404" viewBox="0 0 1212 404" role="img" aria-label="Play Nine: the same puzzle in React 0.14 in 2016 and React 19 in 2026">
+<rect width="1212" height="404" rx="12" fill="#f6f8fa"/>
+<text x="40" y="58" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="26" font-weight="700" fill="#1f2328">Play Nine</text>
+<text x="40" y="86" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="15" fill="#59636e">Not a product. This is where I learn React, ten years of the same puzzle.</text>
+<rect x="40" y="132" width="520" height="232" rx="10" fill="#ffffff" stroke="#d0d7de"/>
+<rect x="40" y="132" width="520" height="4" rx="2" fill="#8250df"/>
+<text x="64" y="170" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="17" font-weight="700" fill="#8250df">April 2016</text>
+<text x="64" y="190" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="12.5" fill="#59636e">hand-written</text>
+<text x="64" y="220" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="13" fill="#59636e">React</text>
+<text x="180" y="220" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="13" fill="#1f2328">0.14.8</text>
+<text x="64" y="244" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="13" fill="#59636e">Components</text>
+<text x="180" y="244" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="13" fill="#1f2328">React.createClass</text>
+<text x="64" y="268" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="13" fill="#59636e">State</text>
+<text x="180" y="268" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="13" fill="#1f2328">this.setState</text>
+<text x="64" y="292" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="13" fill="#59636e">Build</text>
+<text x="180" y="292" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="13" fill="#1f2328">browserify + watchify</text>
+<text x="64" y="316" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="13" fill="#59636e">Types</text>
+<text x="180" y="316" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="13" fill="#1f2328">none</text>
+<text x="64" y="340" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="13" fill="#59636e">Tests</text>
+<text x="180" y="340" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="13" fill="#1f2328">none</text>
+<rect x="652" y="132" width="520" height="232" rx="10" fill="#ffffff" stroke="#d0d7de"/>
+<rect x="652" y="132" width="520" height="4" rx="2" fill="#0969da"/>
+<text x="676" y="170" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="17" font-weight="700" fill="#0969da">August 2026</text>
+<text x="676" y="190" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="12.5" fill="#59636e">modernised with an agent, then reviewed</text>
+<text x="676" y="220" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="13" fill="#59636e">React</text>
+<text x="792" y="220" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="13" fill="#1f2328">19</text>
+<text x="676" y="244" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="13" fill="#59636e">Components</text>
+<text x="792" y="244" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="13" fill="#1f2328">function components</text>
+<text x="676" y="268" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="13" fill="#59636e">State</text>
+<text x="792" y="268" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="13" fill="#1f2328">useReducer, named actions</text>
+<text x="676" y="292" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="13" fill="#59636e">Build</text>
+<text x="792" y="292" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="13" fill="#1f2328">Vite</text>
+<text x="676" y="316" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="13" fill="#59636e">Types</text>
+<text x="792" y="316" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="13" fill="#1f2328">TypeScript, strict</text>
+<text x="676" y="340" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="13" fill="#59636e">Tests</text>
+<text x="792" y="340" font-family="ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace" font-size="13" fill="#1f2328">30, deterministic, in CI</text>
+<path d="M 584.0 248.0 L 624.0 248.0" stroke="#8c959f" stroke-width="2" fill="none"/>
+<path d="M 616.0 242.0 L 626.0 248.0 L 616.0 254.0" stroke="#8c959f" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>
