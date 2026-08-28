@@ -7,7 +7,8 @@
 
 [![CI](https://github.com/ViktorSoroka07/play-nine-game-react/actions/workflows/ci.yml/badge.svg)](https://github.com/ViktorSoroka07/play-nine-game-react/actions/workflows/ci.yml)
 
-This is not a product. It is where I learn React.
+This is not a product. It is where I learn React, and more recently where I
+learned what working with an AI coding agent is actually like.
 
 I wrote the first version by hand in April 2016 to teach myself React 0.14, and
 I have rebuilt it in this same repository whenever the ecosystem moved far
@@ -30,40 +31,26 @@ person, while React changed underneath it.
 commits here come from before hooks, before browsers ran ES modules, and from a
 time when TypeScript was not yet a normal choice for a React app.
 
-## What the agent got right, and what it missed
+## What the 2026 rebuild taught me
 
-I wrote the 2016 version by hand. The 2026 rebuild I did with an AI coding
-agent: over three days in April it moved the project to Vite, React 19,
-TypeScript and Vitest, wrote a test suite, and split the documentation. That was
-real work, and by hand it would have taken me far longer.
+Over three days in April 2026, an AI coding agent moved the project to Vite,
+React 19, TypeScript and Vitest, wrote a test suite and split the documentation.
+Agents are strong at this kind of job: a mechanical migration with a clear
+target and plenty of public documentation behind it. By hand it would have taken
+me much longer, and I would do it again.
 
-I read it properly four months later. Four things had survived the rebuild.
+What I took from it came later, when I sat down and read the result. The suite
+was green, and a green suite only tells you the tests passed. Run repeatedly,
+one test failed 2 of 5 runs, because it played against `Math.random()` instead
+of scripting the draw. A 32-line solver had passing unit tests of its own and
+was never called by the game, so the game ended one condition earlier than it
+should have.
 
-`possibleCombinationSum` is 32 lines of subset-sum search with its own passing
-unit tests, and the game never called it. Game over fired as soon as the redraws
-ran out, so the game gave up while the board was still winnable.
-
-One test failed about half the time. It read the target star count once, outside
-its retry loop, then redrew, and every redraw picks a new target. Its greedy
-`1+2+3` selection can only reach 4 of the 9 possible targets, so an unreachable
-first draw spent all five redraws, ended the game, and left the test clicking a
-button that was no longer on screen. It failed 2 of 5 runs when I measured it.
-
-Another test spied on `possibleCombinationSum` and forced its return value.
-Since the app never called it, the spy did nothing and the test passed for the
-wrong reason.
-
-`AGENTS.md` said `npm run lint` also type-checked. It only ran ESLint, and three
-type errors had been sitting in the code untouched. A leftover `vite.config.js`
-was shadowing the `vite.config.ts` that turns React Compiler on, so the compiler
-never ran.
-
-The migration was worth doing and I would do it again. What it needed was
-someone to read the result: all four of those defects had a green test suite
-sitting on top of them. The fixes are in
+So this repository taught me two things rather than one. React, and that
+generated code is still code: it earns trust by being read, not by arriving with
+a green checkmark. The fixes are in
 [`e53614a`](https://github.com/ViktorSoroka07/play-nine-game-react/commit/e53614a),
-and the tests now script the random draw instead of playing against it, which is
-what made them deterministic.
+and the tests now script the random draw instead of playing against it.
 
 ## Run it
 
